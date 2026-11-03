@@ -1,0 +1,6 @@
+@EyeCare_HostAddress = http://localhost:5009
+
+GET {{EyeCare_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

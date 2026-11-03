@@ -1,0 +1,36 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# .NET build output
+**/bin/
+**/obj/
+**/TestResults/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local development settings and backups
+appsettings.Development.json
+*.backup
+
+# Load test scripts
+patients-load-test.js
+
+# UI / Frontend local files
+index.html
+style.css
+
+# Temporary files
+*.tmp

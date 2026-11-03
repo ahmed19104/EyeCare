@@ -1,0 +1,13 @@
+
+**/bin/
+**/obj/
+.git/
+.vs/
+.vscode/
+TestResults/
+*.user
+*.suo
+.env
+.env.*
+**/appsettings.Development.json
+**/*.backup
