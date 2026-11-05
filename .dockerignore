@@ -11,3 +11,6 @@ TestResults/
 .env.*
 **/appsettings.Development.json
 **/*.backup
+
+**/*.tmp
+**/TestResults/
