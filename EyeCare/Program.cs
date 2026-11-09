@@ -4,6 +4,7 @@ using EyeCare.Infrastructure.Identity;
 using EyeCareAPI.Exceptions;
 using EyeCareAPI.Extensions;
 using EyeCareAPI.Middleware;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.OpenApi;
 using Serilog;
 // «·‹ using «·’ÕÌÕ… ›Ì „ﬂ«‰Â« ›Êﬁ Œ«·’
@@ -57,6 +58,18 @@ namespace EyeCareAPI
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure(
                 builder.Configuration);
+            var dataProtectionKeysPath =
+             builder.Configuration["DataProtection:KeysPath"];
+
+            var dataProtection = builder.Services
+                .AddDataProtection()
+                .SetApplicationName("EyeCare");
+
+            if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+            {
+                dataProtection.PersistKeysToFileSystem(
+                    new DirectoryInfo(dataProtectionKeysPath));
+            }
 
             builder.Services.AddExceptionHandler<
                 GlobalExceptionHandler>();
