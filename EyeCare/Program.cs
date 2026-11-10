@@ -3,8 +3,10 @@ using EyeCare.Infrastructure.DependencyInjection;
 using EyeCare.Infrastructure.Identity;
 using EyeCareAPI.Exceptions;
 using EyeCareAPI.Extensions;
+using EyeCareAPI.HealthChecks;
 using EyeCareAPI.Middleware;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using Serilog;
 // «·‹ using «·’ÕÌÕ… ›Ì „ﬂ«‰Â« ›Êﬁ Œ«·’
@@ -15,6 +17,28 @@ namespace EyeCareAPI
     {
         public static async Task Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == "--healthcheck")
+            {
+                using var client = new HttpClient
+                {
+                    Timeout = TimeSpan.FromSeconds(3)
+                };
+
+                try
+                {
+                    using var response = await client.GetAsync(
+                        "http://127.0.0.1:8080/health/live");
+
+                    Environment.ExitCode = response.IsSuccessStatusCode ? 0 : 1;
+                }
+                catch
+                {
+                    Environment.ExitCode = 1;
+                }
+
+                return;
+            }
+
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Logging.ClearProviders();
@@ -58,6 +82,14 @@ namespace EyeCareAPI
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure(
                 builder.Configuration);
+            builder.Services
+                    .AddHealthChecks()
+                    .AddCheck<SqlServerHealthCheck>(
+                                                    "sql-server",
+                                                    tags: ["ready"])
+                    .AddCheck<RedisHealthCheck>(
+                                                    "redis",
+                                                    tags: ["ready"]);
             var dataProtectionKeysPath =
              builder.Configuration["DataProtection:KeysPath"];
 
@@ -109,6 +141,15 @@ namespace EyeCareAPI
             app.UseRateLimiter();
 
             app.MapControllers();
+            app.MapHealthChecks("/health/live", new HealthCheckOptions
+            {
+                Predicate = _ => false
+            });
+
+            app.MapHealthChecks("/health/ready", new HealthCheckOptions
+            {
+                Predicate = check => check.Tags.Contains("ready")
+            });
 
             app.Run();
         }
