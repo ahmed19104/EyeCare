@@ -69,9 +69,16 @@ namespace EyeCare.Infrastructure.DependencyInjection
 .AddEntityFrameworkStores<AppDbContext>()
 .AddSignInManager();
 
-            services.Configure<JwtOptions>(
-    configuration.GetSection(
-        JwtOptions.SectionName));
+            services.AddOptions<JwtOptions>()
+     .Bind(configuration.GetSection(JwtOptions.SectionName))
+     .Validate(options =>
+         !string.IsNullOrWhiteSpace(options.Issuer) &&
+         !string.IsNullOrWhiteSpace(options.Audience) &&
+         !string.IsNullOrWhiteSpace(options.Key) &&
+         Encoding.UTF8.GetByteCount(options.Key) >= 32 &&
+         options.ExpiryInMinutes > 0,
+         "JWT configuration is invalid.")
+     .ValidateOnStart();
 
             services.AddScoped<
                 ITokenService,
@@ -83,9 +90,11 @@ namespace EyeCare.Infrastructure.DependencyInjection
      .AddJwtBearer(options =>
      {
          var jwtOptions =
-             configuration
-                 .GetSection(JwtOptions.SectionName)
-                 .Get<JwtOptions>()!;
+     configuration
+         .GetSection(JwtOptions.SectionName)
+         .Get<JwtOptions>()
+     ?? throw new InvalidOperationException(
+         "JWT configuration is missing.");
 
          options.TokenValidationParameters =
              new TokenValidationParameters

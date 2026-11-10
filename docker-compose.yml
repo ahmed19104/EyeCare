@@ -26,9 +26,7 @@ services:
       DataProtection__KeysPath: /app/keys
       ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=MyProject;User ID=EyeCareApp;Password=${SQL_PASSWORD};TrustServerCertificate=True;Encrypt=True;"
       ConnectionStrings__Redis: "redis:6379"
-      JwtSettings__Secret: "${JWT_KEY}"
       Jwt__Key: "${JWT_KEY}"
-      JWT_KEY: "${JWT_KEY}"
     volumes:
       - eyecare-dp-keys:/app/keys
     depends_on:
