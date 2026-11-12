@@ -64,7 +64,7 @@ public class PatientsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = Permissions.Billing.Read)]
+    //[Authorize(Policy = Permissions.Billing.Read)]
     public async Task<IActionResult> Search(
     [FromQuery] string? search,
     [FromQuery] int page = 1,

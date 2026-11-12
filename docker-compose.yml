@@ -13,6 +13,15 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
+    
+  jaeger:
+    image: jaegertracing/jaeger:2.22.0
+    container_name: eyecare-jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    restart: unless-stopped
 
   api:
     image: ghcr.io/ahmed19104/eyecare:latest
@@ -27,11 +36,14 @@ services:
       ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=MyProject;User ID=EyeCareApp;Password=${SQL_PASSWORD};TrustServerCertificate=True;Encrypt=True;"
       ConnectionStrings__Redis: "redis:6379"
       Jwt__Key: "${JWT_KEY}"
+      OpenTelemetry__OtlpEndpoint: "http://jaeger:4317"
     volumes:
       - eyecare-dp-keys:/app/keys
     depends_on:
       redis:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
