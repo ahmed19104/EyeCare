@@ -91,32 +91,35 @@ namespace EyeCareAPI
             //    client.Timeout = TimeSpan.FromSeconds(10);
             //});
             #endregion
-
-           
             // OpenTelemetry - Distributed Tracing
 
             builder.Services.AddOpenTelemetry()
                 .ConfigureResource(resource => resource
                     .AddService(serviceName: "EyeCareAPI", serviceVersion: "1.0.0"))
-                .WithTracing(tracing =>
-                {
-                    tracing
-                        .AddAspNetCoreInstrumentation()
-                        .AddHttpClientInstrumentation()
-                        .AddSqlClientInstrumentation()
-                        .AddSource("EyeCare.Application")
-                        .AddConsoleExporter()
-                        .AddOtlpExporter(options =>
-                        {
-                            var otlpEndpoint = builder.Configuration[
-                                "OpenTelemetry:OtlpEndpoint"];
+             .WithTracing(tracing =>
+             {
+                 tracing
+                     .AddAspNetCoreInstrumentation()
+                     .AddHttpClientInstrumentation()
+                     .AddSqlClientInstrumentation()
+                     .AddSource("EyeCare.Application");
 
-                            options.Endpoint = new Uri(otlpEndpoint!);
+                 if (builder.Environment.IsDevelopment())
+                 {
+                     tracing.AddConsoleExporter();
+                 }
 
-                            options.Protocol =
-                                OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-                        });
-                });
+                 tracing.AddOtlpExporter(options =>
+                 {
+                     var otlpEndpoint = builder.Configuration[
+                         "OpenTelemetry:OtlpEndpoint"];
+
+                     options.Endpoint = new Uri(otlpEndpoint!);
+
+                     options.Protocol =
+                         OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+                 });
+             });
 
             builder.Services
                     .AddHealthChecks()

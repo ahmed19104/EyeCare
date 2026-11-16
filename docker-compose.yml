@@ -13,7 +13,7 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
-    
+
   jaeger:
     image: jaegertracing/jaeger:2.22.0
     container_name: eyecare-jaeger
