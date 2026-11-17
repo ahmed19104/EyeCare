@@ -34,3 +34,5 @@ style.css
 
 # Temporary files
 *.tmp
+# Local development certificates
+/certs/

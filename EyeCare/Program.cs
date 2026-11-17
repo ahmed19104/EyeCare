@@ -7,10 +7,12 @@ using EyeCareAPI.HealthChecks;
 using EyeCareAPI.Middleware;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using System.Net;
 // ÇáÜ using ÇáÕÍíÍÉ Ýí ãßÇäåÇ ÝæÞ ÎÇáÕ
 
 namespace EyeCareAPI
@@ -146,8 +148,21 @@ namespace EyeCareAPI
                 GlobalExceptionHandler>();
             builder.Services.AddCustomRateLimiting();
             builder.Services.AddProblemDetails();
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor |
+                    ForwardedHeaders.XForwardedProto;
+
+                options.KnownProxies.Add(
+                    IPAddress.Parse("172.19.0.10"));
+
+                options.ForwardLimit = 1;
+            });
+
             var app = builder.Build();
-           await IdentitySeeder.SeedAsync(app.Services);
+            app.UseForwardedHeaders();
+            await IdentitySeeder.SeedAsync(app.Services);
             
 
             // Configure the HTTP request pipeline.

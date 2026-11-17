@@ -6,10 +6,14 @@ namespace EyeCareAPI.HealthChecks;
 public sealed class RedisHealthCheck : IHealthCheck
 {
     private readonly IDistributedCache _cache;
+    private readonly ILogger<RedisHealthCheck> _logger;
 
-    public RedisHealthCheck(IDistributedCache cache)
+    public RedisHealthCheck(
+        IDistributedCache cache,
+        ILogger<RedisHealthCheck> logger)
     {
         _cache = cache;
+        _logger = logger;
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(
@@ -47,10 +51,17 @@ public sealed class RedisHealthCheck : IHealthCheck
         {
             throw;
         }
-        catch (Exception)
+        
+            catch (Exception ex)
         {
+            _logger.LogError(
+                ex,
+                "Redis health check failed.");
+
             return HealthCheckResult.Unhealthy(
-                "Redis is unavailable.");
+                "Redis is unavailable.",
+                ex);
         }
     }
+    
 }

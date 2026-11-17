@@ -2,8 +2,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: eyecare-redis
-    ports:
-      - "6379:6379"
     volumes:
       - eyecare-redis-data:/data
     command: redis-server --appendonly yes
@@ -13,22 +11,31 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
+    networks:
+      default:
+        aliases:
+          - redis
 
   jaeger:
     image: jaegertracing/jaeger:2.22.0
     container_name: eyecare-jaeger
     ports:
-      - "16686:16686"
-      - "4317:4317"
-      - "4318:4318"
+    - "127.0.0.1:16686:16686"
     restart: unless-stopped
+    networks:
+      default:
+        aliases:
+          - jaeger
 
   api:
-    image: ghcr.io/ahmed19104/eyecare:latest
-    pull_policy: always
+    image: eyecare-api:local
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: eyecare-api
     ports:
-      - "8080:8080"
+     - "127.0.0.1:8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
@@ -46,6 +53,29 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  nginx:
+    image: nginx:alpine
+    container_name: eyecare-nginx
+    ports:
+      - "127.0.0.1:443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs/localhost.pem:/etc/nginx/certs/localhost.pem:ro
+      - ./certs/localhost-key.pem:/etc/nginx/certs/localhost-key.pem:ro
+    depends_on:
+      - api
+    networks:
+      default:
+        ipv4_address: 172.19.0.10
+    restart: unless-stopped
+
 volumes:
   eyecare-redis-data:
   eyecare-dp-keys:
+  
+      
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16
